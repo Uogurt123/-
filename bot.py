@@ -16,10 +16,10 @@ dp = Dispatcher(storage=storage)
  
 # ─── Данные салона ───
 SERVICES = {
-    "💈 Стрижка": {"price": 300, "duration": "45 мин"},
-    "🪒 Бритьё": {"price": 200, "duration": "30 мин"},
-    "💆 Стрижка + борода": {"price": 450, "duration": "60 мин"},
-    "🎨 Окрашивание": {"price": 800, "duration": "90 мин"},
+    "💈 Стрижка": {"price": -, "": "45 мин"},
+    "🪒 Бритьё": {"price": -, "": "30 мин"},
+    "💆 Стрижка + борода": {"price": -, "": "60 мин"},
+    "🎨 Окрашивание": {"price": -, "": "90 мин"},
 }
  
 TIMES = [
@@ -201,7 +201,7 @@ async def about(message: Message):
 async def contacts(message: Message):
     await message.answer(
         "📞 *Контакты:*\n\n"
-        "📱 Телефон: +7 (999) 123-45-67\n"
+        "📱 Телефон: -\n"
         "📍 Адрес: ул. Примерная, 1\n"
         "🕐 Режим работы: 10:00 — 20:00\n"
         "📸 Instagram: @barbershop\n\n"
