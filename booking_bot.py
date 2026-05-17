@@ -14,10 +14,10 @@ storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
 SERVICES = {
-    "💈 Стрижка": {"price": "300", "duration": "45 хв"},
-    "🪒 Гоління": {"price": "200", "duration": "30 хв"},
-    "💆 Стрижка + борода": {"price": "450", "duration": "60 хв"},
-    "🎨 Фарбування": {"price": "800", "duration": "90 хв"},
+    "💈 Стрижка": {"duration": "45 мин"},
+    "🪒 Бритьё": {"duration": "30 мин"},
+    "💆 Стрижка + борода": {"duration": "60 мин"},
+    "🎨 Окрашивание": {"duration": "90 мин"},
 }
 
 TIMES = [
@@ -27,7 +27,7 @@ TIMES = [
     "18:00", "19:00",
 ]
 
-MASTERS = ["✂️ Майстер Олександр", "✂️ Майстер Дмитро", "✂️ Майстер Анна"]
+MASTERS = ["✂️ Мастер Александр", "✂️ Мастер Дмитрий", "✂️ Мастер Анна"]
 
 class BookingState(StatesGroup):
     choosing_service = State()
@@ -38,8 +38,8 @@ class BookingState(StatesGroup):
 def main_keyboard():
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="📅 Записатись"), KeyboardButton(text="📋 Мої записи")],
-            [KeyboardButton(text="ℹ️ Про салон"), KeyboardButton(text="📞 Контакти")],
+            [KeyboardButton(text="📅 Записаться"), KeyboardButton(text="📋 Мои записи")],
+            [KeyboardButton(text="ℹ️ О салоне"), KeyboardButton(text="📞 Контакты")],
         ],
         resize_keyboard=True
     )
@@ -47,22 +47,22 @@ def main_keyboard():
 @dp.message(CommandStart())
 async def start(message: Message):
     await message.answer(
-        "👋 Ласкаво просимо до *Барбершоп Premium*!\n\n"
-        "Раді вас бачити. Оберіть дію в меню нижче 👇",
+        "👋 Добро пожаловать в *Барбершоп Premium*!\n\n"
+        "Рады вас видеть. Выберите действие в меню ниже 👇",
         parse_mode="Markdown",
         reply_markup=main_keyboard()
     )
 
-@dp.message(F.text == "📅 Записатись")
+@dp.message(F.text == "📅 Записаться")
 async def start_booking(message: Message, state: FSMContext):
     buttons = []
     for service, info in SERVICES.items():
         buttons.append([InlineKeyboardButton(
-            text=f"{service} — {info['price']} грн ({info['duration']})",
+            text=f"{service} ({info['duration']})",
             callback_data=f"service_{service}"
         )])
     await message.answer(
-        "🎯 *Оберіть послугу:*",
+        "🎯 *Выберите услугу:*",
         parse_mode="Markdown",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
     )
@@ -75,7 +75,7 @@ async def choose_master(call: CallbackQuery, state: FSMContext):
     buttons = [[InlineKeyboardButton(text=master, callback_data=f"master_{master}")]
                for master in MASTERS]
     await call.message.edit_text(
-        f"✅ Послуга: *{service}*\n\n👨‍💼 *Оберіть майстра:*",
+        f"✅ Услуга: *{service}*\n\n👨‍💼 *Выберите мастера:*",
         parse_mode="Markdown",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
     )
@@ -95,7 +95,7 @@ async def choose_time(call: CallbackQuery, state: FSMContext):
     if row:
         time_buttons.append(row)
     await call.message.edit_text(
-        f"✅ Майстер: *{master}*\n\n🕐 *Оберіть час:*",
+        f"✅ Мастер: *{master}*\n\n🕐 *Выберите время:*",
         parse_mode="Markdown",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=time_buttons)
     )
@@ -108,17 +108,16 @@ async def confirm_booking(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     service_info = SERVICES.get(data["service"], {})
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="✅ Підтвердити запис", callback_data="confirm")],
-        [InlineKeyboardButton(text="❌ Скасувати", callback_data="cancel")],
+        [InlineKeyboardButton(text="✅ Подтвердить запись", callback_data="confirm")],
+        [InlineKeyboardButton(text="❌ Отменить", callback_data="cancel")],
     ])
     await call.message.edit_text(
-        f"📋 *Перевірте ваш запис:*\n\n"
-        f"💈 Послуга: *{data['service']}*\n"
-        f"👨‍💼 Майстер: *{data['master']}*\n"
-        f"🕐 Час: *{data['time']}*\n"
-        f"⏱ Тривалість: *{service_info.get('duration', '')}*\n"
-        f"💰 Вартість: *{service_info.get('price', '')} грн*\n\n"
-        f"Все вірно?",
+        f"📋 *Проверьте вашу запись:*\n\n"
+        f"💈 Услуга: *{data['service']}*\n"
+        f"👨‍💼 Мастер: *{data['master']}*\n"
+        f"🕐 Время: *{data['time']}*\n"
+        f"⏱ Длительность: *{service_info.get('duration', '')}*\n\n"
+        f"Всё верно?",
         parse_mode="Markdown",
         reply_markup=keyboard
     )
@@ -128,61 +127,60 @@ async def confirm_booking(call: CallbackQuery, state: FSMContext):
 async def booking_confirmed(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     await call.message.edit_text(
-        f"🎉 *Чудово!*\n\n"
-        f"Ви записані на *{data['service']}*\n"
-        f"👨‍💼 Майстер: {data['master']}\n"
-        f"🕐 Час: {data['time']}\n\n"
+        f"🎉 *Отлично!*\n\n"
+        f"Вы записаны на *{data['service']}*\n"
+        f"👨‍💼 Мастер: {data['master']}\n"
+        f"🕐 Время: {data['time']}\n\n"
         f"━━━━━━━━━━━━━━━━━━\n"
-        f"⚠️ *Це демо-версія бота.*\n"
-        f"У реальному боті тут буде:\n"
-        f"• Збереження запису в базу даних\n"
-        f"• Сповіщення майстру\n"
-        f"• Нагадування за годину до візиту\n"
-        f"• Підтвердження по SMS\n"
+        f"⚠️ *Это демо-версия бота.*\n"
+        f"В реальном боте здесь будет:\n"
+        f"• Сохранение записи в базу данных\n"
+        f"• Уведомление мастеру\n"
+        f"• Напоминание за час до визита\n"
         f"━━━━━━━━━━━━━━━━━━\n\n"
-        f"_Бот створено як приклад. З питань: @aquaee_",
+        f"_Бот создан как пример. По вопросам: @aquaee_",
         parse_mode="Markdown"
     )
     await state.clear()
 
 @dp.callback_query(F.data == "cancel")
 async def booking_cancelled(call: CallbackQuery, state: FSMContext):
-    await call.message.edit_text("❌ Запис скасовано. Почніть знову — натисніть 📅 Записатись")
+    await call.message.edit_text("❌ Запись отменена. Начните заново — нажмите 📅 Записаться")
     await state.clear()
 
-@dp.message(F.text == "📋 Мої записи")
+@dp.message(F.text == "📋 Мои записи")
 async def my_bookings(message: Message):
     await message.answer(
-        "📋 *Ваші записи:*\n\n"
-        "⚠️ *Це демо-версія бота.*\n"
-        "У реальному боті тут відображались би всі ваші активні записи з можливістю скасування.\n\n"
-        "_Бот створено як приклад. З питань: @aquaee_",
+        "📋 *Ваши записи:*\n\n"
+        "⚠️ *Это демо-версия бота.*\n"
+        "В реальном боте здесь отображались бы все ваши активные записи.\n\n"
+        "_Бот создан как пример. По вопросам: @aquaee_",
         parse_mode="Markdown"
     )
 
-@dp.message(F.text == "ℹ️ Про салон")
+@dp.message(F.text == "ℹ️ О салоне")
 async def about(message: Message):
     await message.answer(
         "💈 *Барбершоп Premium*\n\n"
-        "Ми професійний барбершоп з досвідом понад 5 років.\n\n"
+        "Профессиональный барбершоп.\n\n"
         "⭐️ Рейтинг: 4.9/5\n"
-        "👨‍💼 Майстрів: 3\n"
-        "✂️ Послуг: 4\n"
-        "📍 Адреса: вул. Прикладна, 1\n\n"
-        "⚠️ _Це демо-версія бота — дані вигадані_",
+        "👨‍💼 Мастеров: 3\n"
+        "✂️ Услуг: 4\n"
+        "📍 Адрес: —\n\n"
+        "⚠️ _Это демо-версия бота — данные вымышленные_",
         parse_mode="Markdown"
     )
 
-@dp.message(F.text == "📞 Контакти")
+@dp.message(F.text == "📞 Контакты")
 async def contacts(message: Message):
     await message.answer(
-        "📞 *Контакти:*\n\n"
-        "📱 Телефон: +380 99 123 45 67\n"
-        "📍 Адреса: вул. Прикладна, 1\n"
-        "🕐 Режим роботи: 10:00 — 20:00\n"
-        "📸 Instagram: @barbershop\n\n"
-        "⚠️ _Це демо-версія бота — дані вигадані_\n"
-        "_З питань створення бота: @aquaee_",
+        "📞 *Контакты:*\n\n"
+        "📱 Телефон: —\n"
+        "📍 Адрес: —\n"
+        "🕐 Режим работы: 10:00 — 20:00\n"
+        "📸 Instagram: —\n\n"
+        "⚠️ _Это демо-версия бота — данные вымышленные_\n"
+        "_По вопросам создания бота: @aquaee_",
         parse_mode="Markdown"
     )
 
