@@ -7,7 +7,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
  
 # ⚠️ ВСТАВЬ СВОЙ ТОКЕН СЮДА:
-BOT_TOKEN = "8824663574:AAGNO0iOoUto_XASIq5nrP9qNcgDmgxXX0c"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
  
 bot = Bot(token=BOT_TOKEN)
 storage = MemoryStorage()
